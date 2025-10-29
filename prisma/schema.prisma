@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  fullName  String
+  phone     String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  resumes   Resume[]
+  quota     Quota?
+  payments  Payment[]
+}
+model Resume {
+  id           String   @id @default(cuid())
+  userId       String
+  role         String
+  jsonContent  Json
+  sourceType   String   @default("scratch")
+  watermark    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
+  experiences  Experience[]
+  educations   Education[]
+  certs        Certification[]
+}
+model Experience {
+  id        String   @id @default(cuid())
+  resumeId  String
+  title     String
+  company   String
+  startDate DateTime?
+  endDate   DateTime?
+  bullets   Json
+  resume    Resume   @relation(fields: [resumeId], references: [id])
+}
+model Education {
+  id        String   @id @default(cuid())
+  resumeId  String
+  degree    String
+  school    String
+  startDate DateTime?
+  endDate   DateTime?
+  resume    Resume   @relation(fields: [resumeId], references: [id])
+}
+model Certification {
+  id       String   @id @default(cuid())
+  resumeId String
+  name     String
+  date     DateTime?
+  resume   Resume   @relation(fields: [resumeId], references: [id])
+}
+model Quota {
+  userId            String  @id
+  freeDownloadsUsed Int     @default(0)
+  lastResetAt       DateTime @default(now())
+  user              User    @relation(fields: [userId], references: [id])
+}
+model Payment {
+  id              String   @id @default(cuid())
+  userId          String
+  stripeSessionId String   @unique
+  amount          Int
+  status          String
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id])
+}
+enum Role {
+  USER
+  ADMIN
+}
