@@ -36,8 +36,22 @@ Return compact JSON with sections: Summary, Skills{Tools,Frameworks}, Experience
     });
 
     const text = completion.choices[0]?.message?.content || "{}";
-    try { JSON.parse(text); } catch { /* In case, wrap */ }
-    return new Response(text, { headers: { "content-type": "application/json" } });
+    
+    // Strip markdown code blocks if present (e.g., ```json ... ```)
+    let cleanedText = text.trim();
+    if (cleanedText.startsWith('```')) {
+      cleanedText = cleanedText.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+    }
+    
+    // Validate it's valid JSON before returning
+    try { 
+      JSON.parse(cleanedText); 
+    } catch (parseError) {
+      console.error("JSON parse error:", parseError, "Text:", cleanedText);
+      throw new Error(`Invalid JSON response from OpenAI: ${parseError}`);
+    }
+    
+    return new Response(cleanedText, { headers: { "content-type": "application/json" } });
   } catch (error: any) {
     console.error("Resume generation error:", error);
     return new Response(JSON.stringify({ 
