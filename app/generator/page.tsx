@@ -18,16 +18,20 @@ export default function GeneratorPage() {
     const resumeTextParam = searchParams.get("resumeText");
     
     if (roleParam) setRole(roleParam);
-    if (jdParam) setJd(jdParam);
+    if (jdParam) {
+      setJd(jdParam);
+      // Auto-generate resume if coming from onboarding with job description
+      generateResume(roleParam || "QA Analyst", jdParam);
+    }
   }, [searchParams]);
 
-  const onGenerate = async () => {
+  const generateResume = async (selectedRole: string, jobDescription: string) => {
     setError("");
     setLoading(true);
     try {
       const r = await fetch("/api/resume/generate", { 
         method: "POST", 
-        body: JSON.stringify({ role, jdText: jd }) 
+        body: JSON.stringify({ role: selectedRole, jdText: jobDescription }) 
       });
       
       if (!r.ok) {
@@ -40,56 +44,64 @@ export default function GeneratorPage() {
         throw new Error(data.error);
       }
       
-      setResumeJson(data);
-      
-      // Format as readable resume text
-      let formattedText = `${data.Summary || ''}\n\n`;
-      
-      if (data.Skills) {
-        formattedText += `TECHNICAL SKILLS\n`;
-        if (data.Skills.Tools?.length) formattedText += `Tools: ${data.Skills.Tools.join(', ')}\n`;
-        if (data.Skills.Frameworks?.length) formattedText += `Frameworks: ${data.Skills.Frameworks.join(', ')}\n`;
-        formattedText += `\n`;
-      }
-      
-      if (data.Experience?.length) {
-        formattedText += `PROFESSIONAL EXPERIENCE\n`;
-        data.Experience.forEach((exp: any) => {
-          formattedText += `\n${exp.title} - ${exp.company}\n`;
-          formattedText += `${exp.startDate || ''} ${exp.endDate ? `- ${exp.endDate}` : ''}\n`;
-          if (Array.isArray(exp.bullets)) {
-            exp.bullets.forEach((bullet: string) => {
-              formattedText += `• ${bullet}\n`;
-            });
-          }
-        });
-        formattedText += `\n`;
-      }
-      
-      if (data.Education?.length) {
-        formattedText += `EDUCATION\n`;
-        data.Education.forEach((edu: any) => {
-          formattedText += `\n${edu.degree}\n`;
-          formattedText += `${edu.school}\n`;
-          formattedText += `${edu.startDate || ''} ${edu.endDate ? `- ${edu.endDate}` : ''}\n`;
-        });
-        formattedText += `\n`;
-      }
-      
-      if (data.Certifications?.length) {
-        formattedText += `CERTIFICATIONS\n`;
-        data.Certifications.forEach((cert: any) => {
-          formattedText += `• ${cert.name}${cert.date ? ` (${cert.date})` : ''}\n`;
-        });
-      }
-      
-      setContent(formattedText);
+      formatAndDisplayResume(data);
     } catch (err: any) {
       setError(err.message || "Unknown error occurred");
       console.error("Generation error:", err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatAndDisplayResume = (data: any) => {
+    setResumeJson(data);
+    
+    // Format as readable resume text
+    let formattedText = `${data.Summary || ''}\n\n`;
+    
+    if (data.Skills) {
+      formattedText += `TECHNICAL SKILLS\n`;
+      if (data.Skills.Tools?.length) formattedText += `Tools: ${data.Skills.Tools.join(', ')}\n`;
+      if (data.Skills.Frameworks?.length) formattedText += `Frameworks: ${data.Skills.Frameworks.join(', ')}\n`;
+      formattedText += `\n`;
+    }
+    
+    if (data.Experience?.length) {
+      formattedText += `PROFESSIONAL EXPERIENCE\n`;
+      data.Experience.forEach((exp: any) => {
+        formattedText += `\n${exp.title} - ${exp.company}\n`;
+        formattedText += `${exp.startDate || ''} ${exp.endDate ? `- ${exp.endDate}` : ''}\n`;
+        if (Array.isArray(exp.bullets)) {
+          exp.bullets.forEach((bullet: string) => {
+            formattedText += `• ${bullet}\n`;
+          });
+        }
+      });
+      formattedText += `\n`;
+    }
+    
+    if (data.Education?.length) {
+      formattedText += `EDUCATION\n`;
+      data.Education.forEach((edu: any) => {
+        formattedText += `\n${edu.degree}\n`;
+        formattedText += `${edu.school}\n`;
+        formattedText += `${edu.startDate || ''} ${edu.endDate ? `- ${edu.endDate}` : ''}\n`;
+      });
+      formattedText += `\n`;
+    }
+    
+    if (data.Certifications?.length) {
+      formattedText += `CERTIFICATIONS\n`;
+      data.Certifications.forEach((cert: any) => {
+        formattedText += `• ${cert.name}${cert.date ? ` (${cert.date})` : ''}\n`;
+      });
+    }
+    
+    setContent(formattedText);
+  };
+
+  const onGenerate = async () => {
+    generateResume(role, jd);
   };
   const onExport = async () => {
     if (!resumeJson) return;
