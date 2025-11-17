@@ -1,13 +1,25 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function GeneratorPage() {
+  const searchParams = useSearchParams();
   const [jd, setJd] = useState("");
   const [role, setRole] = useState("QA Analyst");
   const [resumeJson, setResumeJson] = useState<any>(null);
   const [content, setContent] = useState("// Your generated resume will appear here...");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Load user data from query params on mount
+  useEffect(() => {
+    const roleParam = searchParams.get("role");
+    const jdParam = searchParams.get("jobUrl");
+    const resumeTextParam = searchParams.get("resumeText");
+    
+    if (roleParam) setRole(roleParam);
+    if (jdParam) setJd(jdParam);
+  }, [searchParams]);
 
   const onGenerate = async () => {
     setError("");

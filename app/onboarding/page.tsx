@@ -1,19 +1,51 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function OnboardingPage() {
+  const router = useRouter();
   const [form, setForm] = useState({ fullName:"", email:"", phone:"", role:"QA Analyst" });
   const [resumeText, setResumeText] = useState("");
   const [jobUrl, setJobUrl] = useState("");
   const [agree, setAgree] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const onSubmit = async (e:any) => {
     e.preventDefault();
-    if (!agree) return alert("Please accept Terms & Privacy.");
-    const r = await fetch("/api/user", { method:"POST", body: JSON.stringify({ ...form, jobUrl, resumeText }) });
-    setSaved(r.ok);
-    if (!r.ok) alert("Failed to save.");
+    setError("");
+    if (!agree) {
+      setError("Please accept Terms & Privacy.");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const r = await fetch("/api/user", { 
+        method:"POST", 
+        body: JSON.stringify({ ...form, jobUrl, resumeText }) 
+      });
+      
+      if (!r.ok) {
+        const errorData = await r.json();
+        throw new Error(errorData.error || "Failed to save user details");
+      }
+      
+      const data = await r.json();
+      
+      // Redirect to generator with user data in query params
+      const params = new URLSearchParams({
+        role: form.role,
+        resumeText: resumeText,
+        jobUrl: jobUrl,
+        fullName: form.fullName
+      });
+      router.push(`/generator?${params.toString()}`);
+    } catch (err: any) {
+      setError(err.message || "Failed to save. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -29,9 +61,9 @@ export default function OnboardingPage() {
         <textarea className="border p-2 rounded h-28" placeholder="Paste your current resume text (optional)" value={resumeText} onChange={e=>setResumeText(e.target.value)}/>
         <input placeholder="Job description link (optional)" className="border p-2 rounded" value={jobUrl} onChange={e=>setJobUrl(e.target.value)}/>
         <label className="flex items-center gap-2"><input type="checkbox" checked={agree} onChange={e=>setAgree(e.target.checked)}/> I agree to the <a className="underline" href="/terms">Terms</a> & <a className="underline" href="/privacy">Privacy</a>.</label>
-        <button className="btn bg-black text-white" type="submit">Save & Continue</button>
+        {error && <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
+        <button className="btn bg-black text-white disabled:opacity-50" type="submit" disabled={loading}>{loading ? "Saving..." : "Save & Continue"}</button>
       </form>
-      {saved && <a className="underline text-blue-600" href="/generator">Go to Generator →</a>}
     </main>
   );
 }
