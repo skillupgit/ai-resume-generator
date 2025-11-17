@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     const { role = "QA Analyst", jdText = "", uploadedResumeText = "" } = await req.json();
     
     const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey || apiKey === "sk-placeholder" || apiKey.startsWith("sk-proj-")) {
+    if (!apiKey || apiKey === "sk-placeholder") {
       return new Response(JSON.stringify({ 
         error: "OpenAI API key not configured or invalid. Please set a valid OPENAI_API_KEY in .env" 
       }), { 
