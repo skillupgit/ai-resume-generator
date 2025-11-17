@@ -29,7 +29,49 @@ export default function GeneratorPage() {
       }
       
       setResumeJson(data);
-      setContent(JSON.stringify(data, null, 2));
+      
+      // Format as readable resume text
+      let formattedText = `${data.Summary || ''}\n\n`;
+      
+      if (data.Skills) {
+        formattedText += `TECHNICAL SKILLS\n`;
+        if (data.Skills.Tools?.length) formattedText += `Tools: ${data.Skills.Tools.join(', ')}\n`;
+        if (data.Skills.Frameworks?.length) formattedText += `Frameworks: ${data.Skills.Frameworks.join(', ')}\n`;
+        formattedText += `\n`;
+      }
+      
+      if (data.Experience?.length) {
+        formattedText += `PROFESSIONAL EXPERIENCE\n`;
+        data.Experience.forEach((exp: any) => {
+          formattedText += `\n${exp.title} - ${exp.company}\n`;
+          formattedText += `${exp.startDate || ''} ${exp.endDate ? `- ${exp.endDate}` : ''}\n`;
+          if (Array.isArray(exp.bullets)) {
+            exp.bullets.forEach((bullet: string) => {
+              formattedText += `• ${bullet}\n`;
+            });
+          }
+        });
+        formattedText += `\n`;
+      }
+      
+      if (data.Education?.length) {
+        formattedText += `EDUCATION\n`;
+        data.Education.forEach((edu: any) => {
+          formattedText += `\n${edu.degree}\n`;
+          formattedText += `${edu.school}\n`;
+          formattedText += `${edu.startDate || ''} ${edu.endDate ? `- ${edu.endDate}` : ''}\n`;
+        });
+        formattedText += `\n`;
+      }
+      
+      if (data.Certifications?.length) {
+        formattedText += `CERTIFICATIONS\n`;
+        data.Certifications.forEach((cert: any) => {
+          formattedText += `• ${cert.name}${cert.date ? ` (${cert.date})` : ''}\n`;
+        });
+      }
+      
+      setContent(formattedText);
     } catch (err: any) {
       setError(err.message || "Unknown error occurred");
       console.error("Generation error:", err);
