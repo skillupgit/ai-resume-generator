@@ -1,5 +1,7 @@
-// For MVP we return a simple PDF blob made on the server as placeholder.
+// PDF generation is now handled client-side using jsPDF and html2canvas for better fidelity
 export async function POST() {
-  const pdfContent = "%PDF-1.4\n% Demo PDF from server. Replace with client-side jsPDF for fidelity.\n";
-  return new Response(new Blob([pdfContent.encode?pdfContent.encode():pdfContent], { type: "application/pdf" }));
+  return new Response(
+    "PDF generation is now handled client-side. Please upgrade your client to the latest version.", 
+    { status: 410 }
+  );
 }
