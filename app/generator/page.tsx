@@ -178,48 +178,39 @@ export default function GeneratorPage() {
                 <div style="font-weight: bold; font-size: 12px; margin-bottom: 1px;">
                   ${exp.title || ''} – ${exp.company || ''}
                 </div>
-                <div style="font-size: 11px; color: #555; margin-bottom: 2px;">
+                <div style="font-size: 11px; color: #555; margin-bottom: 6px;">
                   ${exp.startDate || ''} ${exp.endDate ? `– ${exp.endDate}` : '– Present'}
                 </div>
-                <div style="margin-left: 18px; font-size: 12px;">
-                  ${Array.isArray(exp.bullets) ? exp.bullets.map((bullet: string) => `
-                    <div style="margin-bottom: 1px;">• ${bullet}</div>
-                  `).join('') : ''}
-                </div>
+                ${Array.isArray(exp.bullets) ? `
+                  <ul style="margin:0; padding-left:18px;">
+                    ${exp.bullets.map((bullet: string) => `<li style=\"margin-bottom:6px; font-size:12px; line-height:1.4;\">${bullet}</li>`).join('')}
+                  </ul>
+                ` : ''}
               </div>
             `).join('')}
           </div>
         ` : ''}
 
-        <!-- Education -->
-        ${resumeJson.Education ? `
+        <!-- Education & Certifications -->
+        ${(resumeJson.Education || resumeJson.Certifications) ? `
           <div style="margin-bottom: 6px; margin-top: 8px;">
-            <div style="font-weight: bold; font-size: 14px; padding-bottom: 5px; border-bottom: 1px solid #999; margin-bottom: 6px;">EDUCATION</div>
-            ${resumeJson.Education.map((edu: any) => `
-              <div style="margin-bottom: 3px;">
-                <div style="font-weight: bold; font-size: 12px; margin-bottom: 1px;">
-                  ${edu.degree || ''}
-                </div>
-                <div style="font-size: 12px; margin-bottom: 1px;">
-                  ${edu.school || ''}
-                </div>
-                <div style="font-size: 11px; color: #555;">
-                  ${edu.startDate || ''} ${edu.endDate ? `– ${edu.endDate}` : ''}
-                </div>
+            <div style="font-weight: bold; font-size: 14px; padding-bottom: 5px; border-bottom: 1px solid #999; margin-bottom: 6px;">EDUCATION & CERTIFICATIONS</div>
+            ${resumeJson.Education ? resumeJson.Education.map((edu: any) => `
+              <div style="margin-bottom: 6px;">
+                <div style="font-weight: bold; font-size: 12px; margin-bottom: 1px;">${edu.degree || ''}</div>
+                <div style="font-size: 12px; margin-bottom: 1px;">${edu.school || ''}</div>
+                <div style="font-size: 11px; color: #555;">${edu.startDate || ''} ${edu.endDate ? `– ${edu.endDate}` : ''}</div>
               </div>
-            `).join('')}
-          </div>
-        ` : ''}
+            `).join('') : ''}
 
-        <!-- Certifications -->
-        ${resumeJson.Certifications ? `
-          <div style="margin-bottom: 6px; margin-top: 8px;">
-            <div style="font-weight: bold; font-size: 14px; padding-bottom: 5px; border-bottom: 1px solid #999; margin-bottom: 6px;">CERTIFICATIONS</div>
-            <div style="margin-left: 18px; font-size: 12px;">
-              ${resumeJson.Certifications.map((cert: any) => `
-                <div style="margin-bottom: 1px;">• ${cert.name}${cert.date ? ` (${cert.date})` : ''}</div>
-              `).join('')}
-            </div>
+            ${resumeJson.Certifications ? `
+              <div style="margin-top: 6px;">
+                <div style="font-weight: bold; font-size: 12px; margin-bottom: 4px;">Certifications</div>
+                <ul style="margin:0; padding-left:18px; font-size:12px;">
+                  ${resumeJson.Certifications.map((cert: any) => `<li style=\"margin-bottom:6px;\">${cert.name}${cert.date ? ` (${cert.date})` : ''}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
           </div>
         ` : ''}
       </div>
