@@ -38,7 +38,9 @@ export default function OnboardingPage() {
         role: form.role,
         resumeText: resumeText,
         jobUrl: jobUrl,
-        fullName: form.fullName
+        fullName: form.fullName,
+        email: form.email,
+        phone: form.phone
       });
       router.push(`/generator?${params.toString()}`);
     } catch (err: any) {
