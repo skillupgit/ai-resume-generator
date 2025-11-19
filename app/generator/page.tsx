@@ -138,6 +138,13 @@ export default function GeneratorPage() {
       .join(' ');
 
     tempDiv.innerHTML = `
+      <style>
+        /* Ensure list markers render when html2canvas captures the element */
+        ul { list-style-type: disc !important; list-style-position: outside !important; margin: 0 0 6px 18px !important; padding: 0 !important; color: #000 !important; }
+        li { display: list-item !important; margin-bottom: 6px !important; font-size: 12px !important; line-height: 1.4 !important; }
+        /* Some browsers render list markers via ::marker — keep defaults but ensure visibility */
+        ::marker { color: #000 !important; }
+      </style>
       <div style="margin: 0; padding: 0;">
         <!-- Header Section -->
         <div style="text-align: center; margin-bottom: 8px; border-bottom: 2px solid #333; padding-bottom: 6px;">
