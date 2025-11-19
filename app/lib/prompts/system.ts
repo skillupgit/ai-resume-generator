@@ -21,7 +21,7 @@ Return ONLY valid JSON (no markdown, no backticks) with this exact structure:
       "bullets": ["achievement 1", "achievement 2", "achievement 3", "..."]
     }
   ],
-  "Education": [
+  "Education": [s
     {
       "degree": "Bachelor of Science in Computer Science",
       "school": "University Name",
