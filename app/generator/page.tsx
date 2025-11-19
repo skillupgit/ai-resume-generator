@@ -6,6 +6,9 @@ export default function GeneratorPage() {
   const searchParams = useSearchParams();
   const [jd, setJd] = useState("");
   const [role, setRole] = useState("QA Analyst");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [resumeJson, setResumeJson] = useState<any>(null);
   const [content, setContent] = useState("// Your generated resume will appear here...");
   const [loading, setLoading] = useState(false);
@@ -16,8 +19,14 @@ export default function GeneratorPage() {
     const roleParam = searchParams.get("role");
     const jdParam = searchParams.get("jobUrl");
     const resumeTextParam = searchParams.get("resumeText");
+    const fullNameParam = searchParams.get("fullName");
+    const emailParam = searchParams.get("email");
+    const phoneParam = searchParams.get("phone");
     
     if (roleParam) setRole(roleParam);
+    if (fullNameParam) setFullName(decodeURIComponent(fullNameParam));
+    if (emailParam) setEmail(decodeURIComponent(emailParam));
+    if (phoneParam) setPhone(decodeURIComponent(phoneParam));
     if (jdParam) {
       setJd(jdParam);
       // Auto-generate resume if coming from onboarding with job description
@@ -112,79 +121,135 @@ export default function GeneratorPage() {
     
     // Create a temporary div for rendering the resume
     const tempDiv = document.createElement('div');
-    tempDiv.className = 'p-8 bg-white';
+    tempDiv.style.width = '8.5in';
+    tempDiv.style.padding = '1in';
+    tempDiv.style.fontSize = '11px';
+    tempDiv.style.lineHeight = '1.4';
+    tempDiv.style.fontFamily = 'Arial, sans-serif';
+    tempDiv.style.backgroundColor = '#ffffff';
+    tempDiv.style.color = '#000000';
     document.body.appendChild(tempDiv);
 
-    // Render resume content
+    // Render resume content with professional formatting
+    // Capitalize first letter of each word in name
+    const capitalizedName = (fullName || 'Your Name')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+
     tempDiv.innerHTML = `
-      <div class="space-y-6">
-        <h1 class="text-2xl font-bold">${resumeJson.Summary ? 'Professional Summary' : ''}</h1>
-        <p>${resumeJson.Summary || ''}</p>
-        
-        ${resumeJson.Skills ? `
-          <h2 class="text-xl font-semibold mt-6">Technical Skills</h2>
-          <div class="space-y-2">
-            ${resumeJson.Skills.Tools ? `<p><strong>Tools:</strong> ${resumeJson.Skills.Tools.join(', ')}</p>` : ''}
-            ${resumeJson.Skills.Frameworks ? `<p><strong>Frameworks:</strong> ${resumeJson.Skills.Frameworks.join(', ')}</p>` : ''}
+      <style>
+        /* Ensure list markers render when html2canvas captures the element */
+        ul { list-style-type: disc !important; list-style-position: outside !important; margin: 0 0 6px 18px !important; padding: 0 !important; color: #000 !important; }
+        li { display: list-item !important; margin-bottom: 6px !important; font-size: 12px !important; line-height: 1.4 !important; }
+        /* Some browsers render list markers via ::marker — keep defaults but ensure visibility */
+        ::marker { color: #000 !important; }
+      </style>
+      <div style="margin: 0; padding: 0;">
+        <!-- Header Section -->
+        <div style="text-align: center; margin-bottom: 8px; border-bottom: 2px solid #333; padding-bottom: 6px;">
+          <div style="font-size: 16px; font-weight: bold; margin: 0;">${capitalizedName}</div>
+          <div style="font-size: 10px; margin: 2px 0; color: #333;">
+            ${email ? `${email}` : ''} ${phone ? `| ${phone}` : ''}
+          </div>
+        </div>
+
+        <!-- Professional Summary -->
+        ${resumeJson.Summary ? `
+          <div style="margin-bottom: 6px; margin-top: 8px;">
+            <div style="font-weight: bold; font-size: 14px; padding-bottom: 5px; border-bottom: 1px solid #999; margin-bottom: 6px;">PROFESSIONAL SUMMARY</div>
+            <div style="margin-left: 0; font-size: 12px; line-height: 1.4;">
+              ${resumeJson.Summary}
+            </div>
           </div>
         ` : ''}
-        
+
+        <!-- Technical Skills -->
+        ${resumeJson.Skills && resumeJson.Skills.Technical ? `
+          <div style="margin-bottom: 6px; margin-top: 8px;">
+            <div style="font-weight: bold; font-size: 14px; padding-bottom: 5px; border-bottom: 1px solid #999; margin-bottom: 6px;">TECHNICAL SKILLS</div>
+            <div style="margin-left: 0; font-size: 12px; line-height: 1.5;">
+              ${Array.isArray(resumeJson.Skills.Technical) ? resumeJson.Skills.Technical.map((skill: string) => `
+                <div style="margin-bottom: 3px;">${skill}</div>
+              `).join('') : ''}
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- Professional Experience -->
         ${resumeJson.Experience ? `
-          <h2 class="text-xl font-semibold mt-6">Professional Experience</h2>
-          ${resumeJson.Experience.map((exp: any) => `
-            <div class="mt-4">
-              <h3 class="font-semibold">${exp.title || ''} - ${exp.company || ''}</h3>
-              <p class="text-sm text-gray-600">${exp.startDate || ''} - ${exp.endDate || 'Present'}</p>
-              <ul class="list-disc ml-6 mt-2">
-                ${Array.isArray(exp.bullets) ? exp.bullets.map((bullet: string) => `<li>${bullet}</li>`).join('') : ''}
-              </ul>
-            </div>
-          `).join('')}
-        ` : ''}
-        
-        ${resumeJson.Education ? `
-          <h2 class="text-xl font-semibold mt-6">Education</h2>
-          ${resumeJson.Education.map((edu: any) => `
-            <div class="mt-4">
-              <h3 class="font-semibold">${edu.degree || ''}</h3>
-              <p>${edu.school || ''}</p>
-              <p class="text-sm text-gray-600">${edu.startDate || ''} ${edu.endDate ? `- ${edu.endDate}` : ''}</p>
-            </div>
-          `).join('')}
-        ` : ''}
-        
-        ${resumeJson.Certifications ? `
-          <h2 class="text-xl font-semibold mt-6">Certifications</h2>
-          <ul class="list-disc ml-6 mt-2">
-            ${resumeJson.Certifications.map((cert: any) => `
-              <li>${cert.name}${cert.date ? ` (${cert.date})` : ''}</li>
+          <div style="margin-bottom: 6px; margin-top: 8px;">
+            <div style="font-weight: bold; font-size: 14px; padding-bottom: 5px; border-bottom: 1px solid #999; margin-bottom: 6px;">PROFESSIONAL EXPERIENCE</div>
+            ${resumeJson.Experience.map((exp: any) => `
+              <div style="margin-bottom: 4px;">
+                <div style="font-weight: bold; font-size: 12px; margin-bottom: 1px;">
+                  ${exp.title || ''} – ${exp.company || ''}
+                </div>
+                <div style="font-size: 11px; color: #555; margin-bottom: 6px;">
+                  ${exp.startDate || ''} ${exp.endDate ? `– ${exp.endDate}` : '– Present'}
+                </div>
+                ${Array.isArray(exp.bullets) ? `
+                  <ul style="margin:0; padding-left:18px;">
+                    ${exp.bullets.map((bullet: string) => `<li style=\"margin-bottom:6px; font-size:12px; line-height:1.4;\">${bullet}</li>`).join('')}
+                  </ul>
+                ` : ''}
+              </div>
             `).join('')}
-          </ul>
+          </div>
+        ` : ''}
+
+        <!-- Education & Certifications -->
+        ${(resumeJson.Education || resumeJson.Certifications) ? `
+          <div style="margin-bottom: 6px; margin-top: 8px;">
+            <div style="font-weight: bold; font-size: 14px; padding-bottom: 5px; border-bottom: 1px solid #999; margin-bottom: 6px;">EDUCATION & CERTIFICATIONS</div>
+            ${resumeJson.Education ? resumeJson.Education.map((edu: any) => `
+              <div style="margin-bottom: 6px;">
+                <div style="font-weight: bold; font-size: 12px; margin-bottom: 1px;">${edu.degree || ''}</div>
+                <div style="font-size: 12px; margin-bottom: 1px;">${edu.school || ''}</div>
+                <div style="font-size: 11px; color: #555;">${edu.startDate || ''} ${edu.endDate ? `– ${edu.endDate}` : ''}</div>
+              </div>
+            `).join('') : ''}
+
+            ${resumeJson.Certifications ? `
+              <div style="margin-top: 6px;">
+                <div style="font-weight: bold; font-size: 12px; margin-bottom: 4px;">Certifications</div>
+                <ul style="margin:0; padding-left:18px; font-size:12px;">
+                  ${resumeJson.Certifications.map((cert: any) => `<li style=\"margin-bottom:6px;\">${cert.name}${cert.date ? ` (${cert.date})` : ''}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
+          </div>
         ` : ''}
       </div>
     `;
 
     try {
-      // Convert the div to canvas
+      // Convert the div to canvas with high quality
       const canvas = await html2canvas(tempDiv, {
-        scale: 2, // Higher resolution
+        scale: 3,
         useCORS: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        logging: false
       });
 
-      // Create PDF with A4 dimensions
+      // Create PDF with proper A4 dimensions
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
 
-      // Calculate dimensions to fit A4
-      const imgWidth = 210; // A4 width in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // Get PDF dimensions
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
       
-      // Add the image to the PDF
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
+      // Calculate image dimensions to fit properly
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      // Add image to PDF
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
 
       // Save the PDF
       pdf.save('resume.pdf');
@@ -198,6 +263,17 @@ export default function GeneratorPage() {
     <main className="grid md:grid-cols-3 gap-6">
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Controls</h2>
+        
+        {/* Display User Info (read-only) */}
+        {(fullName || email || phone) && (
+          <div className="border p-3 rounded bg-blue-50">
+            <h3 className="font-semibold text-sm mb-2">Your Info</h3>
+            {fullName && <div className="text-sm text-gray-700">{fullName}</div>}
+            {email && <div className="text-sm text-gray-700">{email}</div>}
+            {phone && <div className="text-sm text-gray-700">{phone}</div>}
+          </div>
+        )}
+
         <select className="border p-2 rounded w-full" value={role} onChange={e=>setRole(e.target.value)}>
           <option>QA Analyst</option><option>SDET</option><option>API Tester</option>
         </select>
